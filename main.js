@@ -1,46 +1,46 @@
 import 'ol/ol.css';
-import {fromLonLat} from 'ol/proj';
-import {Map, View} from 'ol';
-import {Vector as VectorLayer, Tile as TileLayer} from 'ol/layer';
-import {Vector as VectorSource, Stamen} from 'ol/source';
+import { fromLonLat } from 'ol/proj';
+import { Map, View } from 'ol';
+import { Vector as VectorLayer, Tile as TileLayer } from 'ol/layer';
+import { Vector as VectorSource, Stamen } from 'ol/source';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 //! [renderer]
 import Renderer from 'ol/renderer/webgl/PointsLayer';
 //! [renderer]
-import {clamp} from 'ol/math';
+import { clamp } from 'ol/math';
 
 const source = new VectorSource();
 
 const client = new XMLHttpRequest();
-// client.open('GET', 'data/meteorites.csv');
-client.open('GET', 'http://127.0.0.1:8000/api/map/kebakaranTimeline');
+client.open('GET', 'data/meteorites.csv');
+// client.open('GET', 'http://127.0.0.1:8000/api/map/kebakaranTimeline');
 // console.log('http://127.0.0.1:8000/api/map/kebakaranTimeline');
 // console.log('data/meteorites.csv');
 client.onload = function() {
-  const csv = client.responseText;
-  let curIndex;
-  let prevIndex = 0;
-  const features = [];
+    const csv = client.responseText;
+    let curIndex;
+    let prevIndex = 0;
+    const features = [];
 
-  while ((curIndex = csv.indexOf('\n', prevIndex)) > 0) {
-    const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
-    console.log(line[4], line[3]);
-    prevIndex = curIndex + 1;
-    if (prevIndex === 0) {
-      continue; // skip header
+    while ((curIndex = csv.indexOf('\n', prevIndex)) > 0) {
+        const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
+        console.log(line[4], line[3]);
+        prevIndex = curIndex + 1;
+        if (prevIndex === 0) {
+            continue; // skip header
+        }
+
+        const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
+        // console.log(coords);
+        features.push(new Feature({
+            mass: parseFloat(line[1]) || 0,
+            year: parseInt(line[2]) || 0,
+            geometry: new Point(coords)
+        }));
     }
 
-    const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
-    // console.log(coords);
-    features.push(new Feature({
-      mass: parseFloat(line[1]) || 0,
-      year: parseInt(line[2]) || 0,
-      geometry: new Point(coords)
-    }));
-  }
-  
-  source.addFeatures(features);
+    source.addFeatures(features);
 };
 client.send();
 
@@ -57,32 +57,33 @@ let currentYear = minYear;
 //! [customlayer]
 
 class CustomLayer extends VectorLayer {
-  createRenderer() {
-    return new Renderer(this, {
-      //! [attributes]
-      attributes: [{
-        name: 'size',
-        callback: function (feature) {
-          return 32 * clamp(feature.get('mass') / 200000, 0, 1) + 16;
-        }
-      },
-      {
-        name: 'year',
-        callback: function (feature) {
-          return feature.get('year');
-        },
-      }],
-      
-      //! [attributes]
-      //! [uniforms]
-      uniforms: {
-        u_currentYear: function() {
-          return currentYear;
-        }
-      },
-      //! [uniforms],
-      //! [shaders]
-      vertexShader: `
+    createRenderer() {
+        return new Renderer(this, {
+            //! [attributes]
+            attributes: [{
+                    name: 'size',
+                    callback: function(feature) {
+                        return 32 * clamp(feature.get('mass') / 200000, 0, 1) + 16;
+                    }
+                },
+                {
+                    name: 'year',
+                    callback: function(feature) {
+                        return feature.get('year');
+                    },
+                }
+            ],
+
+            //! [attributes]
+            //! [uniforms]
+            uniforms: {
+                u_currentYear: function() {
+                    return currentYear;
+                }
+            },
+            //! [uniforms],
+            //! [shaders]
+            vertexShader: `
         precision mediump float;
 
         uniform mat4 u_projectionMatrix;
@@ -108,7 +109,7 @@ class CustomLayer extends VectorLayer {
           v_texCoord = vec2(u, v);
           v_year = a_year;
         }`,
-      fragmentShader: `
+            fragmentShader: `
         precision mediump float;
 
         uniform float u_currentYear;
@@ -133,31 +134,31 @@ class CustomLayer extends VectorLayer {
           gl_FragColor.a *= alpha;
           gl_FragColor.rgb *= gl_FragColor.a;
         }`
-      //! [shaders]
-    });
-  }
+                //! [shaders]
+        });
+    }
 }
 const Custome = new CustomLayer({
-  source: source
-})   ;
- console.log(Custome);
+    source: source
+});
+console.log(Custome);
 
 //! [declaration]
 const map = new Map({
-//! [declaration]
-  target: 'map-container',
-  layers: [
-    new TileLayer({
-      source: new Stamen({
-        layer: 'toner'
-      })
-    }),
-    Custome, 
-  ],
-  view: new View({
-    center: fromLonLat([120.437276, -2.806750]),
-    zoom: 5
-  })
+    //! [declaration]
+    target: 'map-container',
+    layers: [
+        new TileLayer({
+            source: new Stamen({
+                layer: 'toner'
+            })
+        }),
+        Custome,
+    ],
+    view: new View({
+        center: fromLonLat([120.437276, -2.806750]),
+        zoom: 5
+    })
 });
 
 // console.log(map);
@@ -165,30 +166,13 @@ const map = new Map({
 const yearElement = document.getElementById('year');
 
 function render() {
-  const elapsed = rate * (Date.now() - start) / 1000;
-  currentYear = minYear + (elapsed % span);
-  yearElement.innerText = currentYear.toFixed(0);
-// console.log(elapsed);
-  map.render();
-  requestAnimationFrame(render);
+    const elapsed = rate * (Date.now() - start) / 1000;
+    currentYear = minYear + (elapsed % span);
+    yearElement.innerText = currentYear.toFixed(0);
+    // console.log(elapsed);
+    map.render();
+    requestAnimationFrame(render);
 }
 
 render();
 //! [animate]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
