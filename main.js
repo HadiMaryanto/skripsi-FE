@@ -12,9 +12,12 @@ import { clamp } from 'ol/math';
 
 const source = new VectorSource();
 
+const urlSearchParams = new URLSearchParams(window.location.search);
+const yearParam = Object.fromEntries(urlSearchParams.entries()).year;
+
 const client = new XMLHttpRequest();
-client.open('GET', 'data/meteorites.csv');
-// client.open('GET', 'http://127.0.0.1:8000/api/map/kebakaranTimeline');
+// client.open('GET', 'data/meteorites.csv');
+client.open('GET', `http://127.0.0.1:8000/api/map/kebakaranTimeline?year=${yearParam}`);
 // console.log('http://127.0.0.1:8000/api/map/kebakaranTimeline');
 // console.log('data/meteorites.csv');
 client.onload = function() {
@@ -25,7 +28,7 @@ client.onload = function() {
 
     while ((curIndex = csv.indexOf('\n', prevIndex)) > 0) {
         const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
-        console.log(line[4], line[3]);
+        // console.log(line[4], line[3]);
         prevIndex = curIndex + 1;
         if (prevIndex === 0) {
             continue; // skip header
@@ -141,7 +144,7 @@ class CustomLayer extends VectorLayer {
 const Custome = new CustomLayer({
     source: source
 });
-console.log(Custome);
+// console.log(Custome);
 
 //! [declaration]
 const map = new Map({
