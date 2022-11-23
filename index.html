@@ -24,6 +24,21 @@
       display: none;
       z-index: 100;
     }
+    #info{
+        position: absolute;
+        height: 1px;
+        width: 1px;
+        z-index: 100;
+      }
+      .tooltip.in{
+        opacity: 1;
+      }
+      .tooltip.top .tooltip.arrow {
+        border-top-color: white;
+      }
+      .tooltip-inner {
+        border: 2px solid white;
+      }
 
   </style>
 </head>
@@ -31,7 +46,10 @@
 <body>
   <div id="year"></div>
 
-  <div id="map-container"></div> 
+  <div id="map-container" class="map-container">
+      <div id="info">
+      </div>
+  </div> 
 </body>
-
+<script src="main.js"></script>
 </html>
